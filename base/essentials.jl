@@ -23,15 +23,6 @@ An `AbstractDict{K, V}` should be an iterator of `Pair{K, V}`.
 """
 abstract type AbstractDict{K,V} end
 
-# The real @inline macro is not available until after array.jl, so this
-# internal macro splices the meta Expr directly into the function body.
-macro _inline_meta()
-    Expr(:meta, :inline)
-end
-macro _noinline_meta()
-    Expr(:meta, :noinline)
-end
-
 macro _gc_preserve_begin(arg1)
     Expr(:gc_preserve_begin, esc(arg1))
 end

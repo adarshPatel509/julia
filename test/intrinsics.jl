@@ -106,3 +106,22 @@ end
 @test unsafe_load(Ptr{Nothing}(0)) === nothing
 struct GhostStruct end
 @test unsafe_load(Ptr{GhostStruct}(rand(Int))) === GhostStruct()
+
+
+@test Core.Intrinsics.atomics_fence(:sequentially_consistent) === nothing
+@test Core.Intrinsics.atomics_pointerref(C_NULL, :sequentially_consistent) == nothing
+let r = Ref{Int}(10)
+    p = Base.unsafe_convert(Ptr{Int}, r)
+    GC.@preserve r begin
+        @test Core.Intrinsics.atomics_pointerref(p, :sequentially_consistent) === 10
+        @test Core.Intrinsics.atomics_pointerset(p, 1, :sequentially_consistent) === p
+        @test Core.Intrinsics.atomics_pointerref(p, :sequentially_consistent) === 1
+        @test Core.Intrinsics.atomics_pointercmpswap(p, 100, 1, :sequentially_consistent, :sequentially_consistent) === true
+        @test Core.Intrinsics.atomics_pointerref(p, :sequentially_consistent) === 100
+        @test Core.Intrinsics.atomics_pointercmpswap(p, 1, 1, :sequentially_consistent, :sequentially_consistent) === false
+        @test Core.Intrinsics.atomics_pointerref(p, :sequentially_consistent) === 100
+        @test Core.Intrinsics.atomics_pointermodify(p, +, 1, :sequentially_consistent) == 100
+        @test Core.Intrinsics.atomics_pointermodify(p, +, 1, :sequentially_consistent) == 101
+        @test Core.Intrinsics.atomics_pointerref(p, :sequentially_consistent) == 102
+    end
+end
