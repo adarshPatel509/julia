@@ -604,6 +604,15 @@ endif
 LLVM_BB_NAME := $(LLVM_BB_REPO_NAME).v$(LLVM_VER)
 LLVM_BB_URL_BASE := https://github.com/JuliaBinaryWrappers/$(LLVM_BB_REPO_NAME)_jll.jl/releases/download/$(LLVM_BB_REPO_NAME)-v$(LLVM_VER)+$(LLVM_BB_REL)
 
-$(eval $(call bb-install,llvm,LLVM,false,true))
+ifneq (,$(filter $(LLVM_VER_SHORT),8.0 9.0 10.0))
+LLVM_CXXABI_SENSITIVE = true
+else
+ifneq (,$(filter $(BB_TRIPLET),darwin freebsd))
+LLVM_CXXABI_SENSITIVE = false
+else
+LLVM_CXXABI_SENSITIVE = true
+endif
+endif
+$(eval $(call bb-install,llvm,LLVM,false,$(LLVM_CXXABI_SENSITIVE)))
 
 endif # USE_BINARYBUILDER_LLVM
